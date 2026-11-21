@@ -1,8 +1,23 @@
 {
   "info": {
     "name": "myplan API",
+    "description": "Rodar na ordem das pastas. O prazo usa a variável {{prazo}}, preenchida com uma data futura no pre-request da coleção.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const d = new Date(); d.setDate(d.getDate() + 5);",
+          "pm.collectionVariables.set('prazo', d.toISOString().slice(0, 10));",
+          "const o = new Date(); o.setDate(o.getDate() - 1);",
+          "pm.collectionVariables.set('ontem', o.toISOString().slice(0, 10));"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "POST",
@@ -29,7 +44,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Pagar conta de luz\",\n  \"descricao\": \"Vence dia 10\",\n  \"prazo\": \"2026-12-10\"\n}",
+              "raw": "{\n  \"titulo\": \"Pagar conta de luz\",\n  \"descricao\": \"Vence no dia 10\",\n  \"prazo\": \"{{prazo}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -50,7 +65,7 @@
           ]
         },
         {
-          "name": "criar outra tarefa",
+          "name": "criar tarefa em andamento",
           "request": {
             "method": "POST",
             "header": [
@@ -92,7 +107,7 @@
           ]
         },
         {
-          "name": "criar sem título",
+          "name": "criar tarefa concluída",
           "request": {
             "method": "POST",
             "header": [
@@ -113,7 +128,133 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"descricao\": \"faltou o título\"\n}",
+              "raw": "{\n  \"titulo\": \"Renovar CNH\",\n  \"status\": \"CONCLUIDA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "criar mais uma",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Marcar dentista\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "criar para excluir depois",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Pagar internet\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "campos inválidos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"ab\",\n  \"descricao\": \"<b>teste</b>\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -134,7 +275,49 @@
           ]
         },
         {
-          "name": "criar com status inválido",
+          "name": "campo não permitido (id)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 99,\n  \"titulo\": \"Tentando escolher o id\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "status inválido",
           "request": {
             "method": "POST",
             "header": [
@@ -174,17 +357,17 @@
               }
             }
           ]
-        }
-      ]
-    },
-    {
-      "name": "GET",
-      "item": [
+        },
         {
-          "name": "listar todas",
+          "name": "data em formato errado",
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/tarefas",
               "host": [
@@ -193,6 +376,142 @@
               "path": [
                 "api",
                 "tarefas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Teste\",\n  \"prazo\": \"10/12/2026\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "título repetido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"pagar CONTA de luz\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "prazo no passado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Pagar boleto\",\n  \"prazo\": \"{{ontem}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 422\", () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "GET",
+      "item": [
+        {
+          "name": "listar com paginação",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas?pagina=0&tamanho=2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ],
+              "query": [
+                {
+                  "key": "pagina",
+                  "value": "0"
+                },
+                {
+                  "key": "tamanho",
+                  "value": "2"
+                }
               ]
             }
           },
@@ -209,12 +528,12 @@
           ]
         },
         {
-          "name": "listar por status",
+          "name": "filtrar e ordenar",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/tarefas?status=EM_ANDAMENTO",
+              "raw": "{{baseUrl}}/api/tarefas?status=PENDENTE&busca=pagar&ordenarPor=titulo&direcao=asc",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -225,8 +544,117 @@
               "query": [
                 {
                   "key": "status",
-                  "value": "EM_ANDAMENTO"
+                  "value": "PENDENTE"
+                },
+                {
+                  "key": "busca",
+                  "value": "pagar"
+                },
+                {
+                  "key": "ordenarPor",
+                  "value": "titulo"
+                },
+                {
+                  "key": "direcao",
+                  "value": "asc"
                 }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "tamanho acima do limite",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas?tamanho=500",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ],
+              "query": [
+                {
+                  "key": "tamanho",
+                  "value": "500"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ordenar por campo não permitido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas?ordenarPor=senha",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas"
+              ],
+              "query": [
+                {
+                  "key": "ordenarPor",
+                  "value": "senha"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "resumo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas/resumo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "resumo"
               ]
             }
           },
@@ -272,7 +700,7 @@
           ]
         },
         {
-          "name": "buscar id inexistente",
+          "name": "id inexistente",
           "request": {
             "method": "GET",
             "header": [],
@@ -299,11 +727,40 @@
               }
             }
           ]
+        },
+        {
+          "name": "id negativo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas/-1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "-1"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "name": "PUT",
+      "name": "PUT e PATCH",
       "item": [
         {
           "name": "atualizar tarefa",
@@ -316,19 +773,19 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/tarefas/1",
+              "raw": "{{baseUrl}}/api/tarefas/2",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "tarefas",
-                "1"
+                "2"
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Pagar conta de luz\",\n  \"descricao\": \"Pago\",\n  \"status\": \"CONCLUIDA\",\n  \"prazo\": \"2026-12-10\"\n}",
+              "raw": "{\n  \"titulo\": \"Ir ao mercado\",\n  \"descricao\": \"Comprar frutas\",\n  \"status\": \"EM_ANDAMENTO\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -343,6 +800,49 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "título de outra tarefa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas/2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "2"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Marcar dentista\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
                 ]
               }
             }
@@ -392,9 +892,9 @@
           ]
         },
         {
-          "name": "atualizar com título vazio",
+          "name": "mudar status",
           "request": {
-            "method": "PUT",
+            "method": "PATCH",
             "header": [
               {
                 "key": "Content-Type",
@@ -402,19 +902,20 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/tarefas/1",
+              "raw": "{{baseUrl}}/api/tarefas/1/status",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "tarefas",
-                "1"
+                "1",
+                "status"
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"\"\n}",
+              "raw": "{\n  \"status\": \"CONCLUIDA\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -428,7 +929,51 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "mudar para o mesmo status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tarefas/1/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tarefas",
+                "1",
+                "status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONCLUIDA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 422\", () => pm.response.to.have.status(422));"
                 ]
               }
             }
@@ -445,14 +990,14 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/tarefas/2",
+              "raw": "{{baseUrl}}/api/tarefas/5",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "tarefas",
-                "2"
+                "5"
               ]
             }
           },
@@ -474,14 +1019,14 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/tarefas/99",
+              "raw": "{{baseUrl}}/api/tarefas/5",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "tarefas",
-                "99"
+                "5"
               ]
             }
           },
@@ -498,12 +1043,81 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Actuator",
+      "item": [
+        {
+          "name": "health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/info",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "info"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
     {
       "key": "baseUrl",
       "value": "http://localhost:8080"
+    },
+    {
+      "key": "prazo",
+      "value": ""
+    },
+    {
+      "key": "ontem",
+      "value": ""
     }
   ]
 }

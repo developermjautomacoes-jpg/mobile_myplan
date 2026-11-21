@@ -55,10 +55,11 @@
         .endpoint { display: flex; gap: 14px; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, .06); font-size: 15px; }
         .endpoint:first-of-type { border-top: 0; }
 
-        .metodo { width: 64px; font-weight: 700; font-size: 13px; }
+        .metodo { width: 70px; font-weight: 700; font-size: 13px; }
         .get { color: var(--lima); }
         .post { color: var(--verde); }
         .put { color: #F2C14E; }
+        .patch { color: #7FD1F0; }
         .delete { color: #F07167; }
 
         code { font-family: Consolas, monospace; color: #fff; }
@@ -93,19 +94,22 @@
 
     <section class="card">
         <h2>Endpoints da API</h2>
-        <div class="endpoint"><span class="metodo get">GET</span><code>/api/tarefas</code><span class="desc">listar tarefas</span></div>
+        <div class="endpoint"><span class="metodo get">GET</span><code>/api/tarefas</code><span class="desc">listar, filtrar e paginar</span></div>
+        <div class="endpoint"><span class="metodo get">GET</span><code>/api/tarefas/resumo</code><span class="desc">resumo por status</span></div>
         <div class="endpoint"><span class="metodo get">GET</span><code>/api/tarefas/{id}</code><span class="desc">buscar tarefa</span></div>
         <div class="endpoint"><span class="metodo post">POST</span><code>/api/tarefas</code><span class="desc">criar tarefa</span></div>
         <div class="endpoint"><span class="metodo put">PUT</span><code>/api/tarefas/{id}</code><span class="desc">atualizar tarefa</span></div>
+        <div class="endpoint"><span class="metodo patch">PATCH</span><code>/api/tarefas/{id}/status</code><span class="desc">mudar o status</span></div>
         <div class="endpoint"><span class="metodo delete">DELETE</span><code>/api/tarefas/{id}</code><span class="desc">excluir tarefa</span></div>
     </section>
 
     <div class="acoes">
         <a class="primario" href="swagger-ui.html">Abrir documentação</a>
         <a class="secundario" href="api/tarefas">Ver tarefas (JSON)</a>
+        <a class="secundario" href="actuator/health">Status da API</a>
     </div>
 
-    <footer>myplan API v1.0.0 · Monique Coelho</footer>
+    <footer>myplan API v2.0.0 · Monique Coelho</footer>
 </main>
 </body>
 </html>

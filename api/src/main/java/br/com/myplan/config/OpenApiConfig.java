@@ -12,8 +12,8 @@ public class OpenApiConfig {
     public OpenAPI myplanOpenApi() {
         return new OpenAPI().info(new Info()
                 .title("myplan API")
-                .version("1.0.0")
+                .version("2.0.0")
                 .description("Sua vida. Seus planos. Sempre em foco.\n\n"
-                        + "API de tarefas pessoais: criar, listar, atualizar e excluir tarefas."));
+                        + "API de tarefas pessoais: criar, listar, filtrar, atualizar, mudar o status e excluir tarefas."));
     }
 }
