@@ -1,0 +1,657 @@
+openapi: 3.1.0
+info:
+  title: myplan API
+  description: |
+    Sua vida. Seus planos. Sempre em foco.
+
+    API de tarefas pessoais do myplan.
+
+    **Versões**
+    - **v2** (atual): `/api/v2/tarefas`
+    - **v1** (depreciada, funciona até 30/06/2027): `/api/v1/tarefas`
+
+    Escolha a versão no seletor "Select a definition", no topo da página.
+
+    **Início rápido**
+    1. Crie uma tarefa: `POST /api/v2/tarefas` com `{"titulo": "Pagar conta de luz"}`
+    2. Liste: `GET /api/v2/tarefas`
+    3. Conclua: `PATCH /api/v2/tarefas/1/status` com `{"status": "CONCLUIDA"}`
+
+    **Erros** seguem o formato Problem Details (RFC 9457), com `codigo` e `dica` de como corrigir.
+  contact:
+    name: Monique Coelho
+  version: 3.0.0
+externalDocs:
+  description: README e catálogo de erros no GitHub
+  url: https://github.com/developermjautomacoes-jpg/mobile_myplan/tree/main/api
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+tags:
+- name: Versões
+  description: Versões disponíveis da API
+- name: Tarefas v2
+  description: Versão atual da API de tarefas
+paths:
+  /api/v2/tarefas/{id}:
+    get:
+      tags:
+      - Tarefas v2
+      summary: Busca uma tarefa
+      operationId: buscar
+      parameters:
+      - name: id
+        in: path
+        description: Id da tarefa
+        required: true
+        schema:
+          type: integer
+          format: int64
+          exclusiveMinimum: 0
+        example: 1
+      responses:
+        "200":
+          description: Tarefa encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TarefaResponseV2"
+        "400":
+          description: Id inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "404":
+          description: Tarefa não existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                TarefaNaoEncontrada:
+                  $ref: "#/components/examples/TarefaNaoEncontrada"
+    put:
+      tags:
+      - Tarefas v2
+      summary: Atualiza uma tarefa
+      description: Substitui todos os dados da tarefa. Campos não enviados ficam vazios
+        e o status volta a PENDENTE.
+      operationId: atualizar
+      parameters:
+      - name: id
+        in: path
+        description: Id da tarefa
+        required: true
+        schema:
+          type: integer
+          format: int64
+          exclusiveMinimum: 0
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TarefaRequestV2"
+        required: true
+      responses:
+        "200":
+          description: Tarefa atualizada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TarefaResponseV2"
+        "400":
+          description: Dados inválidos
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                DadosInvalidos:
+                  $ref: "#/components/examples/DadosInvalidos"
+        "404":
+          description: Tarefa não existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                TarefaNaoEncontrada:
+                  $ref: "#/components/examples/TarefaNaoEncontrada"
+        "409":
+          description: Título igual ao de outra tarefa aberta
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                TarefaDuplicada:
+                  $ref: "#/components/examples/TarefaDuplicada"
+        "422":
+          description: Prazo alterado para uma data que já passou
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+    delete:
+      tags:
+      - Tarefas v2
+      summary: Exclui uma tarefa
+      operationId: excluir
+      parameters:
+      - name: id
+        in: path
+        description: Id da tarefa
+        required: true
+        schema:
+          type: integer
+          format: int64
+          exclusiveMinimum: 0
+        example: 1
+      responses:
+        "204":
+          description: Tarefa excluída
+        "404":
+          description: Tarefa não existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                TarefaNaoEncontrada:
+                  $ref: "#/components/examples/TarefaNaoEncontrada"
+  /api/v2/tarefas:
+    get:
+      tags:
+      - Tarefas v2
+      summary: Lista as tarefas
+      description: "Lista as tarefas com filtro por status, busca no título, paginaç\
+        ão e ordenação. O header X-Total-Count traz o total encontrado."
+      operationId: listar
+      parameters:
+      - name: status
+        in: query
+        description: Filtra pelo status
+        required: false
+        schema:
+          type: string
+          enum:
+          - PENDENTE
+          - EM_ANDAMENTO
+          - CONCLUIDA
+      - name: busca
+        in: query
+        description: "Procura no título, sem diferenciar maiúsculas"
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+          minLength: 0
+        example: pagar
+      - name: pagina
+        in: query
+        description: "Página, começando em 0"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+      - name: tamanho
+        in: query
+        description: "Itens por página, de 1 a 50"
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+          maximum: 50
+          minimum: 1
+      - name: ordenarPor
+        in: query
+        description: "Campo de ordenação: titulo, prazo, status ou dataCriacao"
+        required: false
+        schema:
+          type: string
+          default: dataCriacao
+      - name: direcao
+        in: query
+        description: "Direção: asc ou desc"
+        required: false
+        schema:
+          type: string
+          default: desc
+      responses:
+        "200":
+          description: Página de tarefas (pode vir vazia)
+          headers:
+            X-Total-Count:
+              description: Total de tarefas encontradas
+              style: simple
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginaResponseTarefaResponseV2"
+        "400":
+          description: Parâmetro inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                ParametroInvalido:
+                  $ref: "#/components/examples/ParametroInvalido"
+    post:
+      tags:
+      - Tarefas v2
+      summary: Cria uma tarefa
+      description: Devolve a tarefa criada e o header Location com o endereço dela.
+      operationId: criar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TarefaRequestV2"
+        required: true
+      responses:
+        "201":
+          description: Tarefa criada
+          headers:
+            Location:
+              description: Endereço da nova tarefa
+              style: simple
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TarefaResponseV2"
+        "400":
+          description: Dados inválidos
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                DadosInvalidos:
+                  $ref: "#/components/examples/DadosInvalidos"
+        "409":
+          description: Título repetido em tarefa aberta
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                TarefaDuplicada:
+                  $ref: "#/components/examples/TarefaDuplicada"
+        "415":
+          description: Corpo não está em JSON
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                TipoDeConteudoInvalido:
+                  $ref: "#/components/examples/TipoDeConteudoInvalido"
+        "422":
+          description: Prazo no passado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                RegraDeNegocio:
+                  $ref: "#/components/examples/RegraDeNegocio"
+  /api/v2/tarefas/{id}/status:
+    patch:
+      tags:
+      - Tarefas v2
+      summary: Muda o status
+      description: "Altera só o status, sem mexer nos outros dados."
+      operationId: alterarStatus
+      parameters:
+      - name: id
+        in: path
+        description: Id da tarefa
+        required: true
+        schema:
+          type: integer
+          format: int64
+          exclusiveMinimum: 0
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusRequest"
+        required: true
+      responses:
+        "200":
+          description: Status alterado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TarefaResponseV2"
+        "400":
+          description: Status ausente ou inexistente
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+        "404":
+          description: Tarefa não existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+              examples:
+                TarefaNaoEncontrada:
+                  $ref: "#/components/examples/TarefaNaoEncontrada"
+        "422":
+          description: A tarefa já está com esse status
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErroResponse"
+  /api:
+    get:
+      tags:
+      - Versões
+      summary: Lista as versões da API
+      operationId: versoes
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Versao"
+  /api/v2/tarefas/resumo:
+    get:
+      tags:
+      - Tarefas v2
+      summary: Resumo por status
+      description: "Quantidade de tarefas pendentes, em andamento, concluídas e atrasadas."
+      operationId: resumo
+      responses:
+        "200":
+          description: Resumo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumoResponse"
+components:
+  schemas:
+    TarefaRequestV2:
+      type: object
+      description: Dados para criar ou atualizar uma tarefa
+      properties:
+        titulo:
+          type: string
+          description: Título da tarefa. Não pode repetir o de outra tarefa em aberto
+          example: Pagar conta de luz
+          maxLength: 100
+          minLength: 3
+          pattern: "^[^<>]*$"
+        descricao:
+          type: string
+          description: Detalhes da tarefa
+          example: Vence no dia 10
+          maxLength: 500
+          minLength: 0
+          pattern: "^[^<>]*$"
+        status:
+          type: string
+          description: "Situação da tarefa. Se não for enviado, fica PENDENTE"
+          enum:
+          - PENDENTE
+          - EM_ANDAMENTO
+          - CONCLUIDA
+          example: PENDENTE
+        prazo:
+          type: string
+          format: date
+          description: Data limite (aaaa-mm-dd). Não pode ser uma data que já passou
+          example: 2026-12-10
+      required:
+      - titulo
+    ErroResponse:
+      type: object
+      description: "Erro no formato Problem Details (RFC 9457), com campos extras\
+        \ do myplan"
+      properties:
+        type:
+          type: string
+          description: Link para a explicação do erro no catálogo
+          example: https://github.com/developermjautomacoes-jpg/mobile_myplan/blob/main/api/docs/erros.md#tarefa-nao-encontrada
+        title:
+          type: string
+          description: Resumo do erro
+          example: Tarefa não encontrada
+        status:
+          type: integer
+          format: int32
+          description: Status HTTP
+          example: 404
+        detail:
+          type: string
+          description: O que aconteceu nesta requisição
+          example: Não existe tarefa com o id 99
+        instance:
+          type: string
+          description: Endereço chamado
+          example: /api/v2/tarefas/99
+        codigo:
+          type: string
+          description: "Código do erro, para o cliente tratar cada caso"
+          example: TAREFA_NAO_ENCONTRADA
+        dica:
+          type: string
+          description: Como resolver
+          example: "Confira o id. Para ver os ids existentes, liste as tarefas em\
+            \ GET /api/v2/tarefas."
+        campos:
+          type: object
+          additionalProperties:
+            type: string
+          description: "Erros por campo, quando houver"
+        requestId:
+          type: string
+          description: "Id da requisição, o mesmo do header X-Request-Id"
+        timestamp:
+          type: string
+          format: date-time
+    TarefaResponseV2:
+      type: object
+      description: Tarefa como a v2 devolve
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        titulo:
+          type: string
+          example: Pagar conta de luz
+        descricao:
+          type: string
+          example: Vence no dia 10
+        status:
+          type: string
+          enum:
+          - PENDENTE
+          - EM_ANDAMENTO
+          - CONCLUIDA
+          example: PENDENTE
+        prazo:
+          type: string
+          format: date
+          example: 2026-12-10
+        atrasada:
+          type: boolean
+          description: true quando o prazo passou e a tarefa não foi concluída
+          example: false
+        dataCriacao:
+          type: string
+          format: date-time
+          example: 2026-11-20T22:10:32
+        dataAtualizacao:
+          type: string
+          format: date-time
+          example: 2026-11-21T09:15:00
+    StatusRequest:
+      type: object
+      description: Novo status da tarefa
+      properties:
+        status:
+          type: string
+          enum:
+          - PENDENTE
+          - EM_ANDAMENTO
+          - CONCLUIDA
+          example: CONCLUIDA
+      required:
+      - status
+    Versao:
+      type: object
+      description: Versão da API
+      properties:
+        versao:
+          type: string
+          example: v2
+        endereco:
+          type: string
+          example: /api/v2/tarefas
+        situacao:
+          type: string
+          example: ATUAL
+        fimDoSuporte:
+          type: string
+          description: "Data em que a versão deixa de funcionar, quando houver"
+        novidades:
+          type: string
+          example: "Paginação, filtros, ordenação, PATCH de status e resumo"
+    ResumoResponse:
+      type: object
+      description: Quantidade de tarefas por situação
+      properties:
+        total:
+          type: integer
+          format: int64
+          example: 5
+        pendentes:
+          type: integer
+          format: int64
+          example: 3
+        emAndamento:
+          type: integer
+          format: int64
+          example: 1
+        concluidas:
+          type: integer
+          format: int64
+          example: 1
+        atrasadas:
+          type: integer
+          format: int64
+          example: 0
+    PaginaResponseTarefaResponseV2:
+      type: object
+      description: Página de resultados com os dados da paginação
+      properties:
+        conteudo:
+          type: array
+          items:
+            $ref: "#/components/schemas/TarefaResponseV2"
+        pagina:
+          type: integer
+          format: int32
+          description: "Número da página, começando em 0"
+          example: 0
+        tamanho:
+          type: integer
+          format: int32
+          description: Itens por página
+          example: 10
+        totalElementos:
+          type: integer
+          format: int64
+          description: Total de tarefas encontradas
+          example: 7
+        totalPaginas:
+          type: integer
+          format: int32
+          example: 1
+        primeira:
+          type: boolean
+        ultima:
+          type: boolean
+  examples:
+    TarefaNaoEncontrada:
+      summary: Id que não existe
+      value:
+        type: https://github.com/developermjautomacoes-jpg/mobile_myplan/blob/main/api/docs/erros.md#tarefa-nao-encontrada
+        title: Tarefa não encontrada
+        status: 404
+        detail: Não existe tarefa com o id 99
+        instance: /api/v2/tarefas/99
+        codigo: TAREFA_NAO_ENCONTRADA
+        dica: "Confira o id. Para ver os ids existentes, liste as tarefas em GET /api/v2/tarefas."
+        requestId: 3f2a9c1e-7b4d-4e8a-9f10-2c6d8e5a1b7f
+    DadosInvalidos:
+      summary: Campos fora das regras
+      value:
+        type: https://github.com/developermjautomacoes-jpg/mobile_myplan/blob/main/api/docs/erros.md#dados-invalidos
+        title: Dados inválidos
+        status: 400
+        detail: 2 campos estão inválidos
+        instance: /api/v2/tarefas
+        codigo: DADOS_INVALIDOS
+        dica: Corrija os campos listados em 'campos' e envie de novo.
+        campos:
+          titulo: O título deve ter entre 3 e 100 caracteres
+          descricao: A descrição não pode conter os caracteres < ou >
+    TarefaDuplicada:
+      summary: Título repetido
+      value:
+        type: https://github.com/developermjautomacoes-jpg/mobile_myplan/blob/main/api/docs/erros.md#tarefa-duplicada
+        title: Tarefa duplicada
+        status: 409
+        detail: Já existe uma tarefa em aberto com o título 'Pagar conta de luz'
+        instance: /api/v2/tarefas
+        codigo: TAREFA_DUPLICADA
+        dica: Use outro título ou conclua a tarefa que já existe com esse nome.
+    RegraDeNegocio:
+      summary: Prazo no passado
+      value:
+        type: https://github.com/developermjautomacoes-jpg/mobile_myplan/blob/main/api/docs/erros.md#regra-de-negocio
+        title: Operação não permitida
+        status: 422
+        detail: O prazo 2026-11-19 já passou. Informe a data de hoje ou uma data futura
+        instance: /api/v2/tarefas
+        codigo: REGRA_DE_NEGOCIO
+        dica: "Os dados estão no formato certo, mas violam uma regra do myplan. Leia\
+          \ o 'detalhe'."
+    ParametroInvalido:
+      summary: Tamanho de página acima do limite
+      value:
+        type: https://github.com/developermjautomacoes-jpg/mobile_myplan/blob/main/api/docs/erros.md#parametro-invalido
+        title: Parâmetro inválido
+        status: 400
+        detail: Um ou mais parâmetros da URL estão inválidos
+        instance: /api/v2/tarefas
+        codigo: PARAMETRO_INVALIDO
+        dica: Confira os parâmetros da URL na documentação do endpoint.
+        campos:
+          tamanho: O tamanho máximo é 50
+    TipoDeConteudoInvalido:
+      summary: Corpo enviado como texto
+      value:
+        type: https://github.com/developermjautomacoes-jpg/mobile_myplan/blob/main/api/docs/erros.md#tipo-de-conteudo-invalido
+        title: Tipo de conteúdo não suportado
+        status: 415
+        detail: "O Content-Type recebido foi 'text/plain', mas este endpoint só aceita\
+          \ application/json"
+        instance: /api/v2/tarefas
+        codigo: TIPO_DE_CONTEUDO_INVALIDO
+        dica: "Envie o corpo em JSON com o header 'Content-Type: application/json'."
