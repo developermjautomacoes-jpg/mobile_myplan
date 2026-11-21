@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>myplan API</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --verde: #5BBE3A;
+            --lima: #A6E35A;
+            --escuro: #0A140F;
+            --grafite: #2E343B;
+            --cinza: #C9CCD1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Plus Jakarta Sans", Arial, sans-serif;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+            background:
+                radial-gradient(circle at 85% 10%, rgba(91, 190, 58, .35), transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(91, 190, 58, .25), transparent 35%),
+                var(--escuro);
+        }
+
+        main { width: 100%; max-width: 640px; }
+
+        .marca { display: flex; align-items: center; gap: 18px; }
+        .marca img { width: 72px; height: 72px; }
+        .marca h1 { font-size: 52px; font-weight: 700; letter-spacing: -1px; }
+        .marca h1 span { color: var(--lima); }
+
+        .slogan { margin: 14px 0 32px; color: var(--cinza); font-size: 18px; }
+        .slogan strong { color: var(--lima); font-weight: 500; }
+
+        .card {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 18px;
+            padding: 22px 24px;
+        }
+
+        .card h2 { font-size: 15px; font-weight: 500; color: var(--cinza); margin-bottom: 14px; }
+
+        .endpoint { display: flex; gap: 14px; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, .06); font-size: 15px; }
+        .endpoint:first-of-type { border-top: 0; }
+
+        .metodo { width: 64px; font-weight: 700; font-size: 13px; }
+        .get { color: var(--lima); }
+        .post { color: var(--verde); }
+        .put { color: #F2C14E; }
+        .delete { color: #F07167; }
+
+        code { font-family: Consolas, monospace; color: #fff; }
+        .desc { margin-left: auto; color: var(--cinza); font-size: 14px; }
+
+        .acoes { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+        .acoes a {
+            text-decoration: none;
+            padding: 12px 22px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 15px;
+        }
+        .primario { background: var(--lima); color: var(--escuro); }
+        .secundario { border: 1px solid rgba(255, 255, 255, .25); color: #fff; }
+
+        footer { margin-top: 28px; font-size: 13px; color: #8A9099; }
+
+        @media (max-width: 520px) {
+            .marca h1 { font-size: 40px; }
+            .desc { display: none; }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <div class="marca">
+        <img src="myplan-icon.png" alt="Ícone do myplan">
+        <h1>my<span>plan</span></h1>
+    </div>
+    <p class="slogan">Sua vida. Seus planos. <strong>Sempre em foco.</strong></p>
+
+    <section class="card">
+        <h2>Endpoints da API</h2>
+        <div class="endpoint"><span class="metodo get">GET</span><code>/api/tarefas</code><span class="desc">listar tarefas</span></div>
+        <div class="endpoint"><span class="metodo get">GET</span><code>/api/tarefas/{id}</code><span class="desc">buscar tarefa</span></div>
+        <div class="endpoint"><span class="metodo post">POST</span><code>/api/tarefas</code><span class="desc">criar tarefa</span></div>
+        <div class="endpoint"><span class="metodo put">PUT</span><code>/api/tarefas/{id}</code><span class="desc">atualizar tarefa</span></div>
+        <div class="endpoint"><span class="metodo delete">DELETE</span><code>/api/tarefas/{id}</code><span class="desc">excluir tarefa</span></div>
+    </section>
+
+    <div class="acoes">
+        <a class="primario" href="swagger-ui.html">Abrir documentação</a>
+        <a class="secundario" href="api/tarefas">Ver tarefas (JSON)</a>
+    </div>
+
+    <footer>myplan API v1.0.0 · Monique Coelho</footer>
+</main>
+</body>
+</html>
